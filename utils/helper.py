@@ -1,5 +1,6 @@
 import json
 import logging
+import string
 
 import allure
 import curlify
@@ -15,28 +16,29 @@ class BaseSession(Session):
     def request(self, method, url, **kwargs):
         with step(f'{method} {url}'):
             response = super().request(method=method, url=f'{self.base_url}{url}', **kwargs)
-            content_type = response.headers.get('Content-Type')
-            logging.info(f"Status code: {response.status_code} {curlify.to_curl(response.request)}")
+
+            logging.info(
+                f"Status code: {response.status_code} {curlify.to_curl(response.request)}")
             logging.info(response.text)
-            logging.info(content_type)
-            #
-            allure.attach(f"Status code: {response.status_code} {curlify.to_curl(response.request)}", name="Text", attachment_type=allure.attachment_type.TEXT)
-            # allure.attach(response.text, name="HTTP Response",
-            #               attachment_type=allure.attachment_type.TEXT)
-            attachments_dict = {
-                'text/plain': (response.text, 'Text response', allure.attachment_type.TEXT),
-                'text/html': (response.text, 'Text response', allure.attachment_type.TEXT),
-                'application/json': (response.text, 'JSON response', allure.attachment_type.JSON),
-                'application/xml': (response.text, 'XML response', allure.attachment_type.XML),
-                'application/pdf': (response.content, 'PDF response', allure.attachment_type.PDF),
-                'image/jpeg': (response.content, 'Image response', allure.attachment_type.PNG),
-                'image/png': (response.content, 'Image response', allure.attachment_type.PNG),
-                'image/gif': (response.content, 'Image response', allure.attachment_type.PNG),
-            }
-            if content_type in attachments_dict.keys():
-                attachment_args = attachments_dict[content_type]
-                allure.attach(*attachment_args)
+
+            allure.attach(
+                f"Status code: {response.status_code} {curlify.to_curl(response.request)}",
+                name="Text", attachment_type=allure.attachment_type.TEXT)
+
+            content_type = response.headers.get('Content-Type')
+            if content_type and isinstance(content_type, str):
+                content_type = content_type.split(';')[0].strip()
+            else:
+                content_type = type(content_type).__name__
+
+            if content_type == 'application/json':
+                allure.attach(json.dumps(response.json(), indent=4), 'JSON response',
+                              allure.attachment_type.JSON)
+            elif content_type == 'text/plain':
+                allure.attach(response.text, 'Text response',
+                              allure.attachment_type.TEXT)
             else:
                 allure.attach(response.content, 'Unknown response',
-                          allure.attachment_type.TEXT)
+                              allure.attachment_type.TEXT)
+
         return response

@@ -1,6 +1,7 @@
 import requests
 from pytest_voluptuous import S
 from requests import Response
+import logging
 
 from schemas.reqres import single_user_schema, login_schema, \
     create_user_schema, register_unsuccessfull_schema, update_user_schema, \
@@ -112,7 +113,7 @@ def test_post_register_user(reqres):
 def test_delete_user(reqres):
     """Проверяем delete запрос."""
 
-    url = 'https://reqres.in/api/users/2'
+    # url = 'https://reqres.in/api/users/2'
 
     response: Response = reqres.delete("/users/2")
 
