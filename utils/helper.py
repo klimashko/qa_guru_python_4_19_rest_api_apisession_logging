@@ -1,6 +1,5 @@
 import json
 import logging
-import string
 
 import allure
 import curlify
@@ -15,12 +14,15 @@ class BaseSession(Session):
 
     def request(self, method, url, **kwargs):
         with step(f'{method} {url}'):
-            response = super().request(method=method, url=f'{self.base_url}{url}', **kwargs)
+            response = super().request(method=method, url=f'{self.base_url}{url}',
+                                       **kwargs)
 
+            """Логирование request curl с кодом ответа и текстом response"""
             logging.info(
                 f"Status code: {response.status_code} {curlify.to_curl(response.request)}")
             logging.info(response.text)
 
+            """Добавление в allure attachments: request curl с кодом ответа и response, в зависимости от его типа """
             allure.attach(
                 f"Status code: {response.status_code} {curlify.to_curl(response.request)}",
                 name="Text", attachment_type=allure.attachment_type.TEXT)
