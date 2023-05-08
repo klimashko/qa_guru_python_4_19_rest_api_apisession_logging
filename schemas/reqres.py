@@ -1,9 +1,16 @@
-from voluptuous import Schema, PREVENT_EXTRA
+from voluptuous import Schema, PREVENT_EXTRA, All, Length
+
+
+def is_email_true(email): #Это для примера, простая ф-ия, лучше с помощью регулярки сделать
+    if '@' in email and '.' in email:
+        return True
+    else:
+        raise ValueError('Это не емэйл')
 
 user_schema = Schema(
     {
         "id": int,
-        "email": str,
+        "email": All(str, is_email_true), #Этот валидатор сравнивает значение "email" в функции is_email_true(email)
         "first_name": str,
         "last_name": str,
         "avatar": str,
@@ -18,7 +25,7 @@ list_users_schema = Schema(
         "per_page": int,
         "total": int,
         "total_pages": int,
-        "data": [user_schema],
+        "data": All([user_schema], Length(min=1)),  #Этот валидатор устанавливает длину списка [user_schema], min=1
         "support": {
             "url": str,
             "text": str
@@ -31,7 +38,7 @@ list_users_schema = Schema(
 single_user_schema = Schema(
     {"data": {
         "id": int,
-        "email": str,
+        "email": All(str, is_email_true),  #Этот валидатор сравнивает значение "email" в функции is_email_true(email)
         "first_name": str,
         "last_name": str,
         "avatar": str
